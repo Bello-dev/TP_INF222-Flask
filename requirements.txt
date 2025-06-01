@@ -1,0 +1,8 @@
+Flask
+Flask-SQLAlchemy
+python-dotenv
+pytest
+gunicorn
+flasgger
+flask_migrate
+psycopg2-binary
