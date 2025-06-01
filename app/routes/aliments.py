@@ -14,7 +14,7 @@ def get_aliments():
         'glucides': a.glucides,
         'lipides': a.lipides,
         'type_aliment': a.type_aliment,
-        'allergenes': a.allergenes
+        'allergies': a.allergies
     } for a in aliments])
     
 
@@ -29,7 +29,7 @@ def get_aliment(id):
         'glucides': aliment.glucides,
         'lipides': aliment.lipides,
         'type_aliment': aliment.type_aliment,
-        'allergenes': aliment.allergenes
+        'allergies': aliment.allergies
     })
     
 
@@ -72,7 +72,7 @@ def search_aliments():
         'glucides': a.glucides,
         'lipides': a.lipides,
         'type_aliment': a.type_aliment,
-        'allergenes': a.allergenes
+        'allergies': a.allergies
     } for a in aliments])
     
     
@@ -82,10 +82,10 @@ def get_aliment_types():
     return jsonify([t[0] for t in types])
 
 
-@aliments_bp.route('/aliments/allergenes', methods=['GET']) 
+@aliments_bp.route('/aliments/allergies', methods=['GET']) 
 def get_allergenes():
-    allergenes = db.session.query(Aliment.allergenes).distinct().all()
-    return jsonify([a[0] for a in allergenes if a[0]])
+    allergies = db.session.query(Aliment.allergies).distinct().all()
+    return jsonify([a[0] for a in allergies if a[0]])
 
 
 @aliments_bp.route('/aliments/types/<string:type_aliment>', methods=['GET'])  
@@ -99,5 +99,5 @@ def get_aliments_by_type(type_aliment):
         'glucides': a.glucides,
         'lipides': a.lipides,
         'type_aliment': a.type_aliment,
-        'allergenes': a.allergenes
+        'allergies': a.allergies
     } for a in aliments]) 

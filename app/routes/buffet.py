@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.model import db, Buffet
+from app.model import db, Buffet, Recette
 
 buffet_bp = Blueprint('buffet', __name__)
 
@@ -19,11 +19,20 @@ def get_buffet(id):
 
 @buffet_bp.route('/buffets', methods=['POST'])
 def create_buffet():
-    data = request.json
-    b = Buffet(**data)
-    db.session.add(b)
+    data = request.get_json()
+    buffet = Buffet(
+        evenement=data['evenement'],
+        date=data['date'],
+        lieu=data.get('lieu')
+    )
+    if 'recette_ids' in data:
+        recettes = Recette.query.filter(Recette.id.in_(data['recette_ids'])).all()
+        buffet.recettes.extend(recettes)
+    db.session.add(buffet)
     db.session.commit()
-    return jsonify({'message': 'Buffet créé'}), 201
+    return jsonify({'message': 'Buffet créé', 'id': buffet.id}), 201
+
+
 
 @buffet_bp.route('/buffets/<int:id>', methods=['PUT'])
 def update_buffet(id):

@@ -18,13 +18,20 @@ def get_menu(id):
     m = Menu.query.get_or_404(id)
     return jsonify({'id': m.id, 'utilisateur_id': m.utilisateur_id, 'jour': m.jour, 'recette_id': m.recette_id})
 
-@menu_bp.route('/menus', methods=['POST'])
+from flask import Blueprint, request, jsonify
+from app.db.db import db
+from app.model import Menu
+
+menu_bp = Blueprint('menu', __name__, url_prefix='/menu')
+
+@menu_bp.route('', methods=['POST'])
 def create_menu():
-    data = request.json
-    m = Menu(**data)
-    db.session.add(m)
+    data = request.get_json()
+    menu = Menu(**data)
+    db.session.add(menu)
     db.session.commit()
-    return jsonify({'message': 'Menu créé'}), 201
+    return jsonify({'message': 'Menu créé', 'id': menu.id}), 201
+
 
 @menu_bp.route('/menus/<int:id>', methods=['PUT'])
 def update_menu(id):
