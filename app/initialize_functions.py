@@ -4,8 +4,11 @@ from app.routes.categories import categories_bp
 from app.routes.menu import menu_bp
 from app.routes.planificateur import planificateur_bp
 from app.routes.utilisateurs import utilisateurs_bp
-from app.routes.recettes import recettes_bp
+from app.routes.recettes import recettes_bp, recette_detail_bp
 from app.routes.recommandations import recommandations_bp
+from app.routes.generation import generation_bp
+from app.routes.menu_auto import menu_auto_bp
+
 
 def register_blueprints(app):
     app.register_blueprint(aliments_bp)
@@ -16,4 +19,7 @@ def register_blueprints(app):
     app.register_blueprint(utilisateurs_bp)
     app.register_blueprint(recettes_bp)
     app.register_blueprint(recommandations_bp)
+    app.register_blueprint(generation_bp)
+    app.register_blueprint(recette_detail_bp)
+    app.register_blueprint(menu_auto_bp)
 

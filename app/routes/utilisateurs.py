@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.model import db, Utilisateur
 
+
 utilisateurs_bp = Blueprint('utilisateurs', __name__)
 
 @utilisateurs_bp.route('/utilisateurs', methods=['GET'])

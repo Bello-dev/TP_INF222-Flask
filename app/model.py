@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from app.db.db import db
 
 
+
 # Association buffet/recette
 buffet_recette = db.Table('buffet_recette',
     db.Column('buffet_id', db.Integer, db.ForeignKey('buffets.id'), primary_key=True),
@@ -13,6 +14,7 @@ aliment_allergie = db.Table('aliment_allergie',
     db.Column('aliment_id', db.Integer, db.ForeignKey('aliments.id'), primary_key=True),
     db.Column('allergie_id', db.Integer, db.ForeignKey('allergies.id'), primary_key=True)
 )
+
 
 # Utilisateurs
 class Utilisateur(db.Model):
@@ -40,7 +42,6 @@ class Image(db.Model):
     description = db.Column(db.String(255))
     categorie_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
 
-# Recettes
 class Recette(db.Model):
     __tablename__ = 'recettes'
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +50,24 @@ class Recette(db.Model):
     duree = db.Column(db.Integer)
     menus = db.relationship('Menu', backref='recette', lazy=True)
     buffets = db.relationship('Buffet', secondary=buffet_recette, back_populates='recettes')
+    aliments = db.relationship('RecetteAliment', back_populates='recette')
+    
+    # Ajouter cette propriété pour faciliter l'accès
+    @property
+    def ingredients_associes(self):
+        return self.aliments
+class Aliment(db.Model):
+    __tablename__ = 'aliments'
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    calories = db.Column(db.Integer)
+    proteines = db.Column(db.Float)
+    glucides = db.Column(db.Float)
+    lipides = db.Column(db.Float)
+    type_aliment = db.Column(db.String(50))
+    # Changer 'allergenes' en 'allergies' pour être cohérent
+    allergies = db.relationship('Allergie', secondary=aliment_allergie, back_populates='aliments')
+    recettes = db.relationship('RecetteAliment', back_populates='aliment')
 
 # Menus journaliers par utilisateur
 class Menu(db.Model):
@@ -86,14 +105,12 @@ class Allergie(db.Model):
     description = db.Column(db.String(255))
     aliments = db.relationship('Aliment', secondary=aliment_allergie, back_populates='allergies')
 
-# Aliments avec attributs nutritionnels
-class Aliment(db.Model):
-    __tablename__ = 'aliments'
-    id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False)
-    calories = db.Column(db.Integer)
-    proteines = db.Column(db.Float)
-    glucides = db.Column(db.Float)
-    lipides = db.Column(db.Float)
-    type_aliment = db.Column(db.String(50))
-    allergies = db.relationship('Allergie', secondary=aliment_allergie, back_populates='aliments')
+# Association entre Recette et Aliment pour les quantités
+class RecetteAliment(db.Model):
+    __tablename__ = 'recette_aliment'
+    recette_id = db.Column(db.Integer, db.ForeignKey('recettes.id'), primary_key=True)
+    aliment_id = db.Column(db.Integer, db.ForeignKey('aliments.id'), primary_key=True)
+    quantite = db.Column(db.Float)
+
+    recette = db.relationship('Recette', back_populates='aliments')
+    aliment = db.relationship('Aliment', back_populates='recettes')

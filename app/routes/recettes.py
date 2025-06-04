@@ -4,6 +4,22 @@ from app.model import Recette
 
 recettes_bp = Blueprint('recettes', __name__, url_prefix='/recettes')
 
+recette_detail_bp = Blueprint('recette_detail', __name__)
+
+@recette_detail_bp.route('/recettes/<int:id>/ingredients', methods=['GET'])
+def get_recette_ingredients(id):
+    recette = Recette.query.get_or_404(id)
+    ingredients = []
+    for assoc in recette.ingredients_associes:
+        ingredients.append({
+            'aliment': assoc.aliment.nom,
+            'quantite': assoc.quantite,
+            'unite': 'grammes'  # facultatif
+        })
+    return jsonify({
+        'recette': recette.nom,
+        'ingredients': ingredients
+    })
 # GET toutes les recettes
 @recettes_bp.route('', methods=['GET'])
 def get_recettes():
