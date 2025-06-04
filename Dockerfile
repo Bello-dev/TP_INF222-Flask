@@ -1,20 +1,29 @@
-# Use the official image as a parent image
 FROM python:3.9-slim
 
-# Set the working directory in the container
+# Installer les dépendances système pour PostgreSQL
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Définir le répertoire de travail
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copier requirements.txt d'abord (pour le cache Docker)
+COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
+# Installer les dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 5000 available to the world outside this container
+# Copier le reste du code
+COPY . /app
+
+# Exposer le port
 EXPOSE 5000
 
-# Define environment variable
-ENV FLASK_APP wsgi.py
+# Variables d'environnement
+ENV FLASK_APP=run.py
+ENV PYTHONPATH=/app
 
-# Run app.py when the container launches
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "wsgi:app"]
+# Commande par défaut
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

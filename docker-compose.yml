@@ -1,12 +1,45 @@
 version: '3.8'
 
 services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: aliments_db
+      POSTGRES_USER: tp222_flask
+      POSTGRES_PASSWORD: INF222
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app_network
+
+  # Application Flask
   web:
     build: .
-    command: gunicorn --bind 0.0.0.0:5000 wsgi:app
+    command: >
+      sh -c "
+        sleep 10 &&
+        flask db upgrade &&
+        python3 seeder.py &&
+        gunicorn --bind 0.0.0.0:5000 run:app
+      "
     volumes:
       - .:/app
     ports:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
+      - DATABASE_URL=postgresql://tp222_flask:INF222@db:5432/aliments_db
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge

@@ -83,7 +83,7 @@ def create_aliment():
 @aliments_bp.route('/<int:id>', methods=['PUT'])
 def update_aliment(id):
     try:
-        aliment = Aliment.get_or_404(id)
+        aliment = Aliment.query.get_or_404(id)
         data = request.json
         for key, value in data.items():
             setattr(aliment, key, value)
