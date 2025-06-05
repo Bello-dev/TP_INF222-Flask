@@ -1,29 +1,33 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
-# Installer les dépendances système pour PostgreSQL
+# Installer les dépendances système nécessaires
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
+    netcat-traditional \
+    curl \
+    postgresql-client \
+    iputils-ping \
+    dnsutils \
+    iproute2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Copier requirements.txt d'abord (pour le cache Docker)
-COPY requirements.txt .
-
 # Installer les dépendances Python
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le reste du code
+# Copier le code de l'application
 COPY . /app
 
-# Exposer le port
+# Exposer le port 5000
 EXPOSE 5000
 
-# Variables d'environnement
+# Définir les variables d'environnement
 ENV FLASK_APP=run.py
 ENV PYTHONPATH=/app
 
-# Commande par défaut
+# Commande par défaut (remplacée par `command:` dans docker-compose.yml)
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

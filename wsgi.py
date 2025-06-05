@@ -1,3 +1,4 @@
-from app.app import create_app
+from run import app
 
-app = create_app('production')
+if __name__ == "__main__":
+    app.run()

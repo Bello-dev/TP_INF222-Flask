@@ -8,12 +8,20 @@ from app.initialize_functions import register_blueprints
 
 load_dotenv()
 
+
 def create_app():
+    """Factory function pour créer l'application Flask - version simple sans API"""
     app = Flask(__name__)
-    app.url_map.strict_slashes = False # Désactive les erreurs 404 pour les chemins avec ou sans slash final
+    app.url_map.strict_slashes = False
     app.config.from_object('app.config.config.Config')
+    
+    # Initialiser la base de données
     db.init_app(app)
+    
+    # Initialiser les migrations
     Migrate(app, db)
+    
+    # Enregistrer seulement les blueprints Flask (pas l'API)
     register_blueprints(app)
     
     return app
