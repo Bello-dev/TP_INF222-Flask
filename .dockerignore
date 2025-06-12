@@ -1,8 +1,58 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite
+ello-dev/Modèles/TP_222_Flask/.dockerignore
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Environnement
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Logs
 *.log
-*.env
+
+# Base de données locale
+*.sqlite3
+instance/
+
+# Migrations (optionnel si tu veux les inclure)
+migrations/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (si applicable)
+node_modules/
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+wait-for-db.sh

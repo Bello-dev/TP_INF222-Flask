@@ -1,16 +1,9 @@
 version: '3.8'
 
-networks:
-  tp222_network:
-    driver: bridge
-
-volumes:
-  postgres_data:
-
 services:
   db:
-    image: postgres:15
-    container_name: tp222_flask_db
+    image: postgres:15-alpine
+    container_name: tp222_db
     environment:
       POSTGRES_DB: aliments_db
       POSTGRES_USER: tp222_flask
@@ -19,43 +12,27 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - tp222_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tp222_flask -d aliments_db"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 5
 
   web:
-    build: .
-    container_name: tp222_flask_web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tp222_web
     ports:
       - "5000:5000"
-    environment:
-      - FLASK_ENV=production
-      - DATABASE_URL=postgresql://tp222_flask:INF222@db:5432/aliments_db
-      - FLASK_APP=run.py
-      - PYTHONPATH=/app
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - tp222_network
+    environment:
+      DATABASE_URL: postgresql://tp222_flask:INF222@db:5432/aliments_db
+      FLASK_ENV: production
+      SECRET_KEY: UneCléTrèsSecretePourLaProduction2024!
     restart: unless-stopped
-    command: >
-      sh -c "
-        echo '⏳ Attente de la base de données...' &&
-        until nc -z -w5 db 5432; do
-          echo '🔁 En attente de db:5432...' &&
-          sleep 2
-        done &&
-        echo '✅ Base de données accessible.' &&
-        echo '📊 Création des tables...' &&
-        python3 -c 'from run import create_app; from app.db.db import db; app=create_app(); app.app_context().push(); db.create_all(); print(\"Tables créées\")' &&
-        echo '🌱 Seeding de la base...' &&
-        python3 seeder.py &&
-        echo '🚀 Démarrage de l'application...' &&
-        gunicorn --bind 0.0.0.0:5000 --workers 1 --timeout 120 run:app
-      "
+
+volumes:
+  postgres_data:

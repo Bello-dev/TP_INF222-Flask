@@ -37,6 +37,7 @@ class UtilisateursList(Resource):
         """➕ Créer un nouvel utilisateur"""
         try:
             data = request.get_json()
+            print(f"DEBUG: Données reçues: {data}")
             
             if not data or not data.get('email') or not data.get('mot_de_passe'):
                 utilisateurs_ns.abort(400, "Email et mot de passe sont requis")
@@ -44,22 +45,36 @@ class UtilisateursList(Resource):
             if Utilisateur.query.filter_by(email=data['email']).first():
                 utilisateurs_ns.abort(409, "Un utilisateur avec cet email existe déjà")
             
-            nouvel_utilisateur = Utilisateur(
-                nom=data.get('nom', ''),
-                prenom=data.get('prenom', ''),
-                email=data['email'],
-                mot_de_passe=generate_password_hash(data['mot_de_passe']),
-                age=data.get('age'),
-                poids=data.get('poids'),
-                taille=data.get('taille')
-            )
+            # Extraire le mot de passe
+            mot_de_passe = data.get('mot_de_passe')
+            print(f"DEBUG: Mot de passe extrait: {mot_de_passe is not None}")
             
+            # Créer l'utilisateur en assignant les attributs individuellement
+            print("DEBUG: Création de l'utilisateur vide...")
+            nouvel_utilisateur = Utilisateur()
+            print("DEBUG: Utilisateur créé, assignation des attributs...")
+            nouvel_utilisateur.nom = data.get('nom', '')
+            nouvel_utilisateur.prenom = data.get('prenom', '')
+            nouvel_utilisateur.email = data['email']
+            nouvel_utilisateur.age = data.get('age')
+            nouvel_utilisateur.poids = data.get('poids')
+            nouvel_utilisateur.taille = data.get('taille')
+            
+            # Définir le mot de passe hashé
+            print("DEBUG: Définition du mot de passe...")
+            nouvel_utilisateur.set_password(mot_de_passe)
+            
+            print("DEBUG: Ajout à la session...")
             db.session.add(nouvel_utilisateur)
             db.session.commit()
             
+            print("DEBUG: Utilisateur créé avec succès!")
             return nouvel_utilisateur.to_dict(), 201
             
         except Exception as e:
+            print(f"DEBUG: Erreur détaillée: {e}")
+            import traceback
+            traceback.print_exc()
             db.session.rollback()
             utilisateurs_ns.abort(500, f"Erreur lors de la création: {str(e)}")
 
@@ -82,12 +97,15 @@ class UtilisateurDetail(Resource):
         data = request.get_json()
         
         try:
+            # Traiter le mot de passe séparément
+            if 'mot_de_passe' in data:
+                mot_de_passe = data.pop('mot_de_passe')
+                utilisateur.set_password(mot_de_passe)
+            
+            # Mettre à jour les autres attributs
             for key, value in data.items():
-                if hasattr(utilisateur, key) and key not in ['id', 'created_at']:
-                    if key == 'mot_de_passe':
-                        setattr(utilisateur, key, generate_password_hash(value))
-                    else:
-                        setattr(utilisateur, key, value)
+                if hasattr(utilisateur, key) and key not in ['id', 'created_at', 'mot_de_passe_hash']:
+                    setattr(utilisateur, key, value)
             
             db.session.commit()
             return utilisateur.to_dict()
@@ -111,7 +129,7 @@ class UtilisateurDetail(Resource):
             db.session.rollback()
             utilisateurs_ns.abort(500, f"Erreur lors de la suppression: {str(e)}")
 
-# ============= VOS ROUTES FLASK EXISTANTES (INCHANGÉES) =============
+# ============= ROUTES FLASK EXISTANTES (CORRIGÉES) =============
 
 @utilisateurs_bp.route('/utilisateurs', methods=['GET'])
 def get_utilisateurs():
@@ -121,22 +139,28 @@ def get_utilisateurs():
 
 @utilisateurs_bp.route('/utilisateurs', methods=['POST'])
 def create_utilisateur():
-    """Route Flask existante - reste inchangée"""
+    """Route Flask existante - corrigée"""
     data = request.get_json()
     
     if not data or not data.get('email'):
         return jsonify({'error': 'Email requis'}), 400
     
     try:
-        nouvel_utilisateur = Utilisateur(
-            nom=data.get('nom', ''),
-            prenom=data.get('prenom', ''),
-            email=data['email'],
-            mot_de_passe=generate_password_hash(data.get('mot_de_passe', '')),
-            age=data.get('age'),
-            poids=data.get('poids'),
-            taille=data.get('taille')
-        )
+        # Extraire le mot de passe
+        mot_de_passe = data.get('mot_de_passe', '')
+        
+        # Créer l'utilisateur avec assignation directe des attributs
+        nouvel_utilisateur = Utilisateur()
+        nouvel_utilisateur.nom = data.get('nom', '')
+        nouvel_utilisateur.prenom = data.get('prenom', '')
+        nouvel_utilisateur.email = data['email']
+        nouvel_utilisateur.age = data.get('age')
+        nouvel_utilisateur.poids = data.get('poids')
+        nouvel_utilisateur.taille = data.get('taille')
+        
+        # Utiliser set_password si un mot de passe est fourni
+        if mot_de_passe:
+            nouvel_utilisateur.set_password(mot_de_passe)
         
         db.session.add(nouvel_utilisateur)
         db.session.commit()
@@ -155,17 +179,20 @@ def get_utilisateur(utilisateur_id):
 
 @utilisateurs_bp.route('/utilisateurs/<int:utilisateur_id>', methods=['PUT'])
 def update_utilisateur(utilisateur_id):
-    """Route Flask existante - reste inchangée"""
+    """Route Flask existante - corrigée"""
     utilisateur = Utilisateur.query.get_or_404(utilisateur_id)
     data = request.get_json()
     
     try:
+        # Traiter le mot de passe séparément
+        if 'mot_de_passe' in data:
+            mot_de_passe = data.pop('mot_de_passe')
+            utilisateur.set_password(mot_de_passe)
+        
+        # Mettre à jour les autres attributs
         for key, value in data.items():
-            if hasattr(utilisateur, key) and key not in ['id', 'created_at']:
-                if key == 'mot_de_passe':
-                    setattr(utilisateur, key, generate_password_hash(value))
-                else:
-                    setattr(utilisateur, key, value)
+            if hasattr(utilisateur, key) and key not in ['id', 'created_at', 'mot_de_passe_hash']:
+                setattr(utilisateur, key, value)
         
         db.session.commit()
         return jsonify(utilisateur.to_dict())

@@ -14,6 +14,9 @@ def register_blueprints(app, api=None):
     from app.routes.generation import generation_bp
     from app.routes.menu_auto import menu_auto_bp
     from app.routes.planificateur import planificateur_bp
+    from app.routes.allergies_advanced import allergies_bp
+    # Correction : importer le blueprint qui était manquant
+    
 
     # Enregistrer tous les blueprints Flask
     app.register_blueprint(aliments_bp)
@@ -26,7 +29,8 @@ def register_blueprints(app, api=None):
     app.register_blueprint(generation_bp)
     app.register_blueprint(menu_auto_bp)
     app.register_blueprint(planificateur_bp)
-
+    app.register_blueprint(allergies_bp)
+    
     # Si Swagger est activé, ajouter les namespaces (avec protection d'erreur)
     if api is not None:
         try:
@@ -88,3 +92,11 @@ def register_blueprints(app, api=None):
             api.add_namespace(planificateur_ns, path='/planificateur')
         except ImportError as e:
             print(f"⚠️ Namespace planificateur non trouvé: {e}")
+        
+        try:
+            from app.routes.allergies_advanced import allergies_ns
+            api.add_namespace(allergies_ns, path='/allergies')
+        except ImportError as e:
+            print(f"⚠️ Namespace allergies non trouvé: {e}")
+    else:
+        print("⚠️ API Swagger non initialisée, les namespaces ne seront pas ajoutés.")

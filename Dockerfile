@@ -1,33 +1,28 @@
 FROM python:3.11-slim
 
-# Installer les dépendances système nécessaires
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    netcat-traditional \
-    curl \
-    postgresql-client \
-    iputils-ping \
-    dnsutils \
-    iproute2 \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-# Installer les dépendances Python
+# Installer les dépendances système
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    netcat-traditional \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier et installer les dépendances Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le code de l'application
-COPY . /app
+# Copier le code
+COPY . .
 
-# Exposer le port 5000
+ENV FLASK_APP=run.py
+ENV FLASK_ENV=production
+
 EXPOSE 5000
 
-# Définir les variables d'environnement
-ENV FLASK_APP=run.py
-ENV PYTHONPATH=/app
-
-# Commande par défaut (remplacée par `command:` dans docker-compose.yml)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
+# Attendre la DB puis démarrer
+CMD ["python", "run.py"]
